@@ -16,7 +16,7 @@ namespace LinkBot.Utility
             {
                 foreach (var child in array)
                 {
-                    var result = child?.FirstDescendantOrDefault(predicate);
+                    var result = child?.FirstDescendantOrDefault(predicate, null);
                     if (result is not null)
                         return result;
                 }
