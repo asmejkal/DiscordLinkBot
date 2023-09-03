@@ -1,5 +1,9 @@
 # DiscordLinkBot
-A Discord bot to nicely display various social media posts
+A Discord bot to nicely display various social media posts.
+
+## Supported websites
+- Threads
+- All b.stage websites
 
 ## Set up
 1. Set the `LinkBot_Token` environment variable to your Discord bot token.
