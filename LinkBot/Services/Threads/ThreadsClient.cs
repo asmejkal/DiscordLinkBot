@@ -47,8 +47,8 @@ namespace LinkBot.Services.Threads
             var post = doc.DocumentNode
                 .Descendants("script")
                 .Where(x => x.InnerText.Contains(".jpg"))
-                .Select(x => x.InnerText.Trim())
-                .Select(x => FindPostElement(JsonSerializer.Deserialize<JsonObject>(x)))
+                .Select(x => JsonSerializer.Deserialize<JsonObject>(x.InnerText.Trim()))
+                .Select(x => x?.FirstDescendantOrDefault((node, key) => key == "post"))
                 .FirstOrDefault(x => x is not null);
 
             if (post is null)
@@ -76,33 +76,6 @@ namespace LinkBot.Services.Threads
                 throw new ArgumentException("Required elements not found, possibly invalid URL", nameof(uri));
 
             return new(media.Select(x => new Uri(x)).ToList(), username);
-        }
-
-        private static JsonNode? FindPostElement(JsonNode? node)
-        {
-            if (node is JsonArray array)
-            {
-                foreach (var child in array.WhereNotNull())
-                {
-                    var result = FindPostElement(child);
-                    if (result is not null)
-                        return result;
-                }
-            }
-            else if (node is JsonObject obj)
-            {
-                foreach (var child in obj)
-                {
-                    if (child.Key == "post")
-                        return child.Value;
-
-                    var result = FindPostElement(child.Value);
-                    if (result is not null)
-                        return result;
-                }
-            }
-
-            return null;
         }
     }
 }
