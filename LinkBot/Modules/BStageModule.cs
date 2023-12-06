@@ -4,18 +4,19 @@ using Disqord;
 using Microsoft.Extensions.Logging;
 using Disqord.Bot.Commands;
 using LinkBot.Services.BStage;
+using LinkBot.Services.Common;
 
 namespace LinkBot.Modules
 {
     public class BStageModule : DiscordApplicationModuleBase
     {
         private readonly IBStageClient _client;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IMediaClient _mediaClient;
 
-        public BStageModule(IBStageClient client, IHttpClientFactory httpClientFactory)
+        public BStageModule(IBStageClient client, IMediaClient mediaClient)
         {
             _client = client;
-            _httpClientFactory = httpClientFactory;
+            _mediaClient = mediaClient;
         }
 
         [SlashCommand("bstage")]
@@ -40,14 +41,11 @@ namespace LinkBot.Modules
                     .DeleteAfter(TimeSpan.FromSeconds(3));
             }
 
-            using var httpClient = _httpClientFactory.CreateClient();
-            var attachments = await Task.WhenAll(post.MediaUrls.Select(
-                async x => new LocalAttachment(await httpClient.GetStreamAsync(x, Bot.StoppingToken), Path.GetFileName(x.AbsolutePath))));
+            var attachments = await _mediaClient.GetAttachmentsAsync(post.MediaUrls, Bot.StoppingToken);
 
             return Response(new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
-                .WithContent(Markdown.Bold($"@{post.AuthorNickname}"))
-                .WithAttachments(attachments)
-                .WithComponents(new LocalRowComponent().AddComponent(new LocalLinkButtonComponent().WithLabel("View post").WithUrl(link))));
+                .WithContent(Markdown.Link(Markdown.Bold($"@{post.AuthorNickname}"), $"<{link}>"))
+                .WithAttachments(attachments));
         }
     }
 }

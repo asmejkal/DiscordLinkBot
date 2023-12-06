@@ -1,6 +1,8 @@
 ﻿using Disqord.Bot.Hosting;
 using Disqord.Gateway;
 using LinkBot.Services.BStage;
+using LinkBot.Services.Common;
+using LinkBot.Services.Instagram;
 using LinkBot.Services.Threads;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +26,10 @@ await new HostBuilder()
     })
     .ConfigureServices(services =>
     {
+        services.AddHttpClient<IMediaClient, MediaClient>();
         services.AddHttpClient<IBStageClient, BStageClient>();
         services.AddHttpClient<IThreadsClient, ThreadsClient>();
+        services.AddHttpClient<IInstagramClient, InstagramClient>()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false });
     })
     .RunConsoleAsync();

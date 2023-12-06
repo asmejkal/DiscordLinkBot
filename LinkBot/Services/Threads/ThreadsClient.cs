@@ -3,8 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using HtmlAgilityPack;
 using LinkBot.Utility;
-using Microsoft.Extensions.Logging;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LinkBot.Services.Threads
 {
@@ -46,34 +44,43 @@ namespace LinkBot.Services.Threads
 
             var post = doc.DocumentNode
                 .Descendants("script")
-                .Where(x => x.InnerText.Contains(".jpg"))
-                .Select(x => JsonSerializer.Deserialize<JsonObject>(x.InnerText.Trim()))
+                .Where(x => x.GetAttributes("data-sjs").Any())
+                .Select(x =>
+                {
+                    try
+                    {
+                        return JsonSerializer.Deserialize<JsonObject>(x.InnerText.Trim());
+                    }
+                    catch (JsonException)
+                    {
+                        return null;
+                    }
+                })
                 .Select(x => x?.FirstDescendantOrDefault((node, key) => key == "post"))
-                .FirstOrDefault(x => x is not null);
+                .FirstOrDefault(x => x is not null)?
+                .AsObject();
 
             if (post is null)
                 throw new ArgumentException("Data element not found, possibly not a valid URL", nameof(uri));
 
-            var username = post["user"]?["username"]?.GetValue<string>();
-            var media = post["carousel_media"]?
-                .AsArray()
+            var mediaNodes = post["carousel_media"]?.AsArray().Select(x => x?.AsObject()).WhereNotNull()
+                ?? new[] { post };
+
+            var images = mediaNodes
+                .Where(x => x.ContainsKey("image_versions2"))
                 .Select(x => x?["image_versions2"]?["candidates"]?.AsArray().FirstOrDefault()?["url"]?.GetValue<string>())
                 .WhereNotNull();
 
-            if (media is null)
-            {
-                var video = post["video_versions"]?
-                    .AsArray()
-                    .Select(x => x?["url"]?.GetValue<string>())
-                    .WhereNotNull()
-                    .FirstOrDefault();
+            var videos = mediaNodes
+                .Where(x => x.ContainsKey("video_versions"))
+                .Select(x => x?["video_versions"]?.AsArray().Select(x => x?["url"]?.GetValue<string>()).WhereNotNull().FirstOrDefault())
+                .WhereNotNull();
 
-                if (video is not null)
-                    media = new[] { video };
-            }
-
-            if (media is null || username is null || !media.Any())
-                throw new ArgumentException("Required elements not found, possibly invalid URL", nameof(uri));
+            var media = videos.Any() ? videos : images;
+            var username = post["user"]?["username"]?.GetValue<string>();
+            
+            if (username is null || !media.Any())
+                throw new ArgumentException("Username or media elements not found, possibly invalid URL", nameof(uri));
 
             return new(media.Select(x => new Uri(x)).ToList(), username);
         }
