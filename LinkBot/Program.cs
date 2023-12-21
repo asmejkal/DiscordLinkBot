@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 await new HostBuilder()
     .ConfigureAppConfiguration(configuration =>
     {
-        // We will use the environment variable DISQORD_TOKEN for the bot token.
         configuration.AddEnvironmentVariables("LinkBot_");
     })
     .ConfigureLogging(logging =>
