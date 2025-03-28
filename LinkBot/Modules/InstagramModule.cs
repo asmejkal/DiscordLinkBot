@@ -6,8 +6,6 @@ using Disqord.Bot.Commands;
 using LinkBot.Services.Instagram;
 using LinkBot.Utility;
 using LinkBot.Services.Common;
-using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Immutable;
 
 namespace LinkBot.Modules
 {

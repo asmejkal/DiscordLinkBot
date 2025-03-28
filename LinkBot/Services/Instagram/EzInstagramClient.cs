@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using LinkBot.Services.Common;
