@@ -1,4 +1,6 @@
-﻿namespace LinkBot.Services.BStage
+﻿using LinkBot.Services.Common;
+
+namespace LinkBot.Services.BStage
 {
-    public record BStagePost(IReadOnlyCollection<Uri> MediaUrls, string AuthorNickname);
+    public record BStagePost(IReadOnlyCollection<MediaItem> MediaItems, string AuthorNickname);
 }

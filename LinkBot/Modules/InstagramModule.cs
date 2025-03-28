@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Disqord.Bot.Commands;
 using LinkBot.Services.Instagram;
 using LinkBot.Utility;
-using ImageMagick;
 using LinkBot.Services.Common;
 
 namespace LinkBot.Modules
@@ -46,12 +45,18 @@ namespace LinkBot.Modules
             {
                 Logger.Log(LogLevel.Information, ex, "Failed to open the Instagram post, possibly incorrect URL: {url}", link);
                 return Response(new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
-                    .WithIsEphemeral(true)
                     .WithContent("Couldn't find any media. Please make sure the link is a valid Instagram post."))
                     .DeleteAfter(TimeSpan.FromSeconds(3));
             }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, ex, "Failed to open Instagram post {url}", link);
+                return Response(new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
+                    .WithContent("Oops... seems that something went wrong."))
+                    .DeleteAfter(TimeSpan.FromSeconds(3));
+            }
 
-            var attachments = await _mediaClient.GetAttachmentsAsync(post.MediaUrls, Bot.StoppingToken);
+            var attachments = await _mediaClient.GetAttachmentsAsync(post.MediaItems, Bot.StoppingToken);
             
             var response = new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
                 .WithContent(FormatContent(post, link, showDescription))

@@ -2,7 +2,9 @@
 A Discord bot to nicely display various social media posts.
 
 ## Supported websites
+- Instagram
 - Threads
+- Twitter / X
 - All b.stage websites
 
 ## Set up

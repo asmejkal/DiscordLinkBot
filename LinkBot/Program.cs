@@ -4,6 +4,7 @@ using LinkBot.Services.BStage;
 using LinkBot.Services.Common;
 using LinkBot.Services.Instagram;
 using LinkBot.Services.Threads;
+using LinkBot.Services.Twitter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,6 +29,9 @@ await new HostBuilder()
         services.AddHttpClient<IMediaClient, MediaClient>();
         services.AddHttpClient<IBStageClient, BStageClient>();
         services.AddHttpClient<IThreadsClient, ThreadsClient>();
+        services.AddHttpClient<ITwitterClient, TwitterClient>()
+            .ConfigureHttpClient(x => x.DefaultRequestHeaders.UserAgent.ParseAdd("LinkBot/1.0"));
+
         services.AddHttpClient<IInstagramClient, InstagramClient>()
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false });
     })

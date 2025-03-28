@@ -1,4 +1,6 @@
-﻿namespace LinkBot.Services.Threads
+﻿using LinkBot.Services.Common;
+
+namespace LinkBot.Services.Threads
 {
-    public record ThreadsPost(IReadOnlyCollection<Uri> MediaUrls, string Username);
+    public record ThreadsPost(IReadOnlyCollection<MediaItem> MediaItems, string Username);
 }

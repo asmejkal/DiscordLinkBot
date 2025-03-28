@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using HtmlAgilityPack;
+using LinkBot.Services.Common;
 using LinkBot.Utility;
 
 namespace LinkBot.Services.BStage
@@ -40,7 +41,7 @@ namespace LinkBot.Services.BStage
                 if (images is null || authorNickname is null || !images.Any())
                     throw new ArgumentException("Required elements not found, possibly invalid URL", nameof(uri));
 
-                return new(images.Select(x => new Uri(x)).ToList(), authorNickname);
+                return new(images.Select(x => new MediaItem(new Uri(x), Path.GetFileName(new Uri(x).AbsolutePath))).ToList(), authorNickname);
             }
             catch (JsonException ex)
             {
