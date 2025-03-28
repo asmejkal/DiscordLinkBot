@@ -1,18 +1,14 @@
 ﻿using System.Collections.Immutable;
-using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using LinkBot.Utility;
 
 namespace LinkBot.Services.Instagram
 {
-    public class InstagramClient : IInstagramClient
+    public class DdInstagramClient : IInstagramClient
     {
-        private static readonly Regex PostIdRegex = new(@"https:\/\/(?:www\.)?instagram.com\/[^\/]+\/([\w-_]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private static readonly Regex StoryIdRegex = new(@"https:\/\/(?:www\.)?instagram.com\/stories\/([\w-_\.]+)\/(\d+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
         private readonly HttpClient _client;
 
-        public InstagramClient(HttpClient client)
+        public DdInstagramClient(HttpClient client)
         {
             _client = client;
         }
@@ -45,7 +41,7 @@ namespace LinkBot.Services.Instagram
                 request.Headers.Add("User-Agent", "bot");
 
                 using var response = await _client.SendAsync(request, ct);
-                if (response.StatusCode == System.Net.HttpStatusCode.Found && response.Headers.Location is not null)
+                if (response.StatusCode is System.Net.HttpStatusCode.Found or System.Net.HttpStatusCode.TemporaryRedirect && response.Headers.Location is not null)
                     return response.Headers.Location;
                 else
                     return null;
@@ -69,7 +65,7 @@ namespace LinkBot.Services.Instagram
             var metaTags = doc.DocumentNode.Descendants("meta");
             return 
             (
-                metaTags.FirstOrDefault(x => x.GetAttributeValue("name", null) == "twitter:title")?.GetAttributeValue("content", null)
+                metaTags.FirstOrDefault(x => x.GetAttributeValue("property", null) == "twitter:title")?.GetAttributeValue("content", null)
                     ?? throw new InvalidDataException("Username missing"),
                 metaTags.FirstOrDefault(x => x.GetAttributeValue("property", null) == "og:description")?.GetAttributeValue("content", null)
             );
@@ -96,7 +92,7 @@ namespace LinkBot.Services.Instagram
 
         private async Task<(string PostId, bool IsStory)> ParseUriAsync(Uri uri, CancellationToken ct)
         {
-            var storyMatch = StoryIdRegex.Match(uri.AbsoluteUri);
+            var storyMatch = InstagramConstants.StoryIdRegex.Match(uri.AbsoluteUri);
             if (storyMatch.Success)
             {
                 var postId = await GetStoryPostIdAsync(storyMatch.Groups[1].Value, storyMatch.Groups[2].Value, ct);
@@ -104,7 +100,7 @@ namespace LinkBot.Services.Instagram
             }
             else
             {
-                var postIdMatch = PostIdRegex.Match(uri.AbsoluteUri);
+                var postIdMatch = InstagramConstants.PostIdRegex.Match(uri.AbsoluteUri);
                 if (!postIdMatch.Success)
                     throw new ArgumentException("Post ID not found in URL", nameof(uri));
 

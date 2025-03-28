@@ -25,10 +25,13 @@ await new HostBuilder()
     })
     .ConfigureServices(services =>
     {
+        services.AddOptions<EzInstagramOptions>().BindConfiguration("EzInstagram").ValidateOnStart();
+
         services.AddHttpClient<IMediaClient, MediaClient>();
         services.AddHttpClient<IBStageClient, BStageClient>();
         services.AddHttpClient<IThreadsClient, ThreadsClient>();
-        services.AddHttpClient<IInstagramClient, InstagramClient>()
+        services.AddHttpClient<IInstagramClient, DdInstagramClient>()
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false });
+        services.AddHttpClient<IInstagramClient, EzInstagramClient>();
     })
     .RunConsoleAsync();

@@ -5,8 +5,9 @@ using Microsoft.Extensions.Logging;
 using Disqord.Bot.Commands;
 using LinkBot.Services.Instagram;
 using LinkBot.Utility;
-using ImageMagick;
 using LinkBot.Services.Common;
+using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Immutable;
 
 namespace LinkBot.Modules
 {
@@ -14,12 +15,14 @@ namespace LinkBot.Modules
     {
         private const int MaxMediaCount = 6;
 
-        private readonly IInstagramClient _client;
+        private readonly IEnumerable<IInstagramClient> _clients;
         private readonly IMediaClient _mediaClient;
 
-        public InstagramModule(IInstagramClient client, IMediaClient mediaClient)
+        public InstagramModule(
+            IEnumerable<IInstagramClient> clients,
+            IMediaClient mediaClient)
         {
-            _client = client;
+            _clients = clients;
             _mediaClient = mediaClient;
         }
 
@@ -37,17 +40,34 @@ namespace LinkBot.Modules
         {
             await Deferral();
 
-            InstagramPost post;
-            try
+            InstagramPost? post = null;
+            foreach (var client in _clients)
             {
-                post = await _client.GetPostAsync(new Uri(link), CommandArgumentParsers.ParseMediaPositions(selectedImages, excludedImages, MaxMediaCount), Bot.StoppingToken);
+                try
+                {
+                    post = await client.GetPostAsync(new Uri(link), CommandArgumentParsers.ParseMediaPositions(selectedImages, excludedImages, MaxMediaCount), Bot.StoppingToken);
+                    if (post is not null)
+                        break;
+                }
+                catch (ArgumentException ex)
+                {
+                    Logger.Log(LogLevel.Information, ex, "Failed to open the Instagram post, possibly incorrect URL: {Url}", link);
+                    return Response(new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
+                        .WithIsEphemeral(true)
+                        .WithContent("Couldn't find any media. Please make sure the link is a valid Instagram post."))
+                        .DeleteAfter(TimeSpan.FromSeconds(3));
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Warning, ex, "Failed to get Instagram post {Url} with client {ClientType}", link, client.GetType());
+                }
             }
-            catch (ArgumentException ex)
+
+            if (post is null)
             {
-                Logger.Log(LogLevel.Information, ex, "Failed to open the Instagram post, possibly incorrect URL: {url}", link);
                 return Response(new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
                     .WithIsEphemeral(true)
-                    .WithContent("Couldn't find any media. Please make sure the link is a valid Instagram post."))
+                    .WithContent("Failed to load Instagram post."))
                     .DeleteAfter(TimeSpan.FromSeconds(3));
             }
 
