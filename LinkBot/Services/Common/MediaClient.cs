@@ -12,19 +12,19 @@ namespace LinkBot.Services.Common
             _client = client;
         }
 
-        public async Task<LocalAttachment> GetAttachmentAsync(Uri uri, CancellationToken ct)
+        public async Task<LocalAttachment> GetAttachmentAsync(MediaItem item, CancellationToken ct)
         {
-            if (MediaConverter.IsConvertableFileType(Path.GetExtension(uri.AbsolutePath)))
+            if (MediaConverter.IsConvertableFileType(Path.GetExtension(item.Filename)))
             {
-                using var httpStream = await _client.GetStreamAsync(uri, ct);
-                var (stream, path) = await MediaConverter.ConvertAsync(httpStream, uri.AbsolutePath);
-                return new LocalAttachment(stream, Path.GetFileName(path));
+                using var httpStream = await _client.GetStreamAsync(item.Uri, ct);
+                var (stream, filename) = await MediaConverter.ConvertAsync(httpStream, item.Filename);
+                return new LocalAttachment(stream, Path.GetFileName(filename));
             }
 
-            return new LocalAttachment(await _client.GetStreamAsync(uri, ct), Path.GetFileName(uri.AbsolutePath));
+            return new LocalAttachment(await _client.GetStreamAsync(item.Uri, ct), item.Filename);
         }
 
-        public async Task<IReadOnlyCollection<LocalAttachment>> GetAttachmentsAsync(IEnumerable<Uri> uris, CancellationToken ct) =>
-            await Task.WhenAll(uris.Select(x => GetAttachmentAsync(x, ct)));
+        public async Task<IReadOnlyCollection<LocalAttachment>> GetAttachmentsAsync(IEnumerable<MediaItem> items, CancellationToken ct) =>
+            await Task.WhenAll(items.Select(x => GetAttachmentAsync(x, ct)));
     }
 }

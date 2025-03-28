@@ -1,6 +1,8 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
+using LinkBot.Services.Common;
 using LinkBot.Utility;
 using Microsoft.Extensions.Options;
 
@@ -41,14 +43,14 @@ namespace LinkBot.Services.Instagram
             if (media is null || !media.Any())
                 throw new InvalidDataException("Media not found");
 
-            var mediaUrls = mediaPositions
+            var mediaItems = mediaPositions
                 .Select(x => media.ElementAtOrDefault(x - 0))
                 .Select(x => x?["source"]?["url"]?.GetValue<string>())
                 .WhereNotNull()
-                .Select(x => new Uri(x))
+                .Select(x => new MediaItem(new Uri(x), Path.GetFileName(x)))
                 .ToList();
 
-            return new(mediaUrls, username, description, media.Count > mediaPositions.Count);
+            return new(mediaItems, username, description, media.Count > mediaPositions.Count);
         }
 
         private string ParseUri(Uri uri, CancellationToken ct)

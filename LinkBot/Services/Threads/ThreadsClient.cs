@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HtmlAgilityPack;
+using LinkBot.Services.Common;
 using LinkBot.Utility;
 
 namespace LinkBot.Services.Threads
@@ -82,7 +83,7 @@ namespace LinkBot.Services.Threads
             if (username is null || !media.Any())
                 throw new ArgumentException("Username or media elements not found, possibly invalid URL", nameof(uri));
 
-            return new(media.Select(x => new Uri(x)).ToList(), username);
+            return new(media.Select(x => new MediaItem(new Uri(x), Path.GetFileName(new Uri(x).AbsolutePath))).ToList(), username);
         }
     }
 }

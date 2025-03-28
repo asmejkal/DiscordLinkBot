@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using HtmlAgilityPack;
+using LinkBot.Services.Common;
 using LinkBot.Utility;
 
 namespace LinkBot.Services.Instagram
@@ -33,7 +34,7 @@ namespace LinkBot.Services.Instagram
             return new(media, metadata.Username, metadata.Description, overflowMedia.Any());
         }
 
-        private async Task<IReadOnlyCollection<Uri>> GetMediaAsync(string postId, IEnumerable<int> mediaPositions, CancellationToken ct)
+        private async Task<IReadOnlyCollection<MediaItem>> GetMediaAsync(string postId, IEnumerable<int> mediaPositions, CancellationToken ct)
         {
             var results = await Task.WhenAll(mediaPositions.Select(async x =>
             {
@@ -47,7 +48,10 @@ namespace LinkBot.Services.Instagram
                     return null;
             }));
 
-            return results.WhereNotNull().ToList();
+            return results
+                .WhereNotNull()
+                .Select(x => new MediaItem(x, Path.GetFileName(x.AbsolutePath)))
+                .ToList();
         }
 
         private async Task<(string Username, string? Description)> GetMetadataAsync(string postId, CancellationToken ct)

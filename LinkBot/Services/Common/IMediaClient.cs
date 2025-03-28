@@ -4,7 +4,7 @@ namespace LinkBot.Services.Common
 {
     public interface IMediaClient
     {
-        Task<LocalAttachment> GetAttachmentAsync(Uri uri, CancellationToken ct);
-        Task<IReadOnlyCollection<LocalAttachment>> GetAttachmentsAsync(IEnumerable<Uri> uris, CancellationToken ct);
+        Task<LocalAttachment> GetAttachmentAsync(MediaItem item, CancellationToken ct);
+        Task<IReadOnlyCollection<LocalAttachment>> GetAttachmentsAsync(IEnumerable<MediaItem> items, CancellationToken ct);
     }
 }

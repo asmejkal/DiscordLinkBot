@@ -53,7 +53,6 @@ namespace LinkBot.Modules
                 {
                     Logger.Log(LogLevel.Information, ex, "Failed to open the Instagram post, possibly incorrect URL: {Url}", link);
                     return Response(new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
-                        .WithIsEphemeral(true)
                         .WithContent("Couldn't find any media. Please make sure the link is a valid Instagram post."))
                         .DeleteAfter(TimeSpan.FromSeconds(3));
                 }
@@ -66,12 +65,11 @@ namespace LinkBot.Modules
             if (post is null)
             {
                 return Response(new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
-                    .WithIsEphemeral(true)
-                    .WithContent("Failed to load Instagram post."))
+                    .WithContent("Oops... seems that something went wrong."))
                     .DeleteAfter(TimeSpan.FromSeconds(3));
             }
 
-            var attachments = await _mediaClient.GetAttachmentsAsync(post.MediaUrls, Bot.StoppingToken);
+            var attachments = await _mediaClient.GetAttachmentsAsync(post.MediaItems, Bot.StoppingToken);
             
             var response = new LocalInteractionMessageResponse(InteractionResponseType.DeferredMessageUpdate)
                 .WithContent(FormatContent(post, link, showDescription))
