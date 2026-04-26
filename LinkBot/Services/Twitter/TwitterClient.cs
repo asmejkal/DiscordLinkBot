@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Web;
 using LinkBot.Services.Common;
 using LinkBot.Utility;
 
@@ -32,7 +33,7 @@ namespace LinkBot.Services.Twitter
                     .Select(x => x switch
                     {
                         { Url: null } => null,
-                        { Type: "gif" or "video" } => new(new Uri(x.Url), Path.GetFileName(x.Url)),
+                        { Type: "gif" or "video" } => new(new Uri(x.Url), Path.GetFileName(new UriBuilder(x.Url).Path)),
                         _ => ParseImageUri(x.Url)
                     })
                     .WhereNotNull();
@@ -63,11 +64,21 @@ namespace LinkBot.Services.Twitter
 
         private static MediaItem? ParseImageUri(string uri)
         {
-            var extension = Path.GetExtension(uri);
+            var uriBuilder = new UriBuilder(uri);
+            var extension = Path.GetExtension(uriBuilder.Path);
+            var fileName = Path.GetFileName(uriBuilder.Path);
+
             if (string.IsNullOrEmpty(extension))
                 return null;
 
-            return new(new Uri($"{uri[..^extension.Length]}?format={extension[1..]}&name=orig"), Path.GetFileName(uri));
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            query.Set("name", "orig");
+            query.Set("format", extension[1..]);
+
+            uriBuilder.Query = query.ToString();
+            uriBuilder.Path = uriBuilder.Path[..^extension.Length];
+
+            return new(uriBuilder.Uri, fileName);
         }
     }
 }

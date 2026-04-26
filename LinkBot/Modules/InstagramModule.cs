@@ -81,10 +81,8 @@ namespace LinkBot.Modules
 
         private static string FormatContent(InstagramPost post, string link, bool showDescription)
         {
-            if (showDescription && !string.IsNullOrEmpty(post.Description))
-                return $"<:ig:725481240245043220> {Markdown.Link(Markdown.Bold(post.Username), $"<{link}>")}\n> " + string.Join("\n> ", post.Description.Split('\n'));
-            else
-                return $"<:ig:725481240245043220> {Markdown.Link(Markdown.Bold(post.Username), $"<{link}>")}";
+            var uri = new Uri(link);
+            return $"<:ig:725481240245043220> <https://instagram.com{uri.AbsolutePath}>";
         }
     }
 }

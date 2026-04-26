@@ -2,5 +2,5 @@
 
 namespace LinkBot.Services.Instagram
 {
-    public record InstagramPost(IReadOnlyCollection<MediaItem> MediaItems, string Username, string? Description, bool HasMore);
+    public record InstagramPost(IReadOnlyCollection<MediaItem> MediaItems, string? Username, string? Description, bool HasMore);
 }

@@ -38,7 +38,7 @@ namespace LinkBot.Services.Instagram
         {
             var results = await Task.WhenAll(mediaPositions.Select(async x =>
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, $"https://ddinstagram.com/images/{postId}/{x}");
+                using var request = new HttpRequestMessage(HttpMethod.Get, $"https://uuinstagram.com/images/{postId}/{x}");
                 request.Headers.Add("User-Agent", "bot");
 
                 using var response = await _client.SendAsync(request, ct);
@@ -56,7 +56,7 @@ namespace LinkBot.Services.Instagram
 
         private async Task<(string Username, string? Description)> GetMetadataAsync(string postId, CancellationToken ct)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"https://ddinstagram.com/p/{postId}/");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"https://uuinstagram.com/p/{postId}/");
             request.Headers.Add("User-Agent", "bot");
 
             using var response = await _client.SendAsync(request, ct);
@@ -69,7 +69,7 @@ namespace LinkBot.Services.Instagram
             var metaTags = doc.DocumentNode.Descendants("meta");
             return 
             (
-                metaTags.FirstOrDefault(x => x.GetAttributeValue("property", null) == "twitter:title")?.GetAttributeValue("content", null)
+                metaTags.FirstOrDefault(x => x.GetAttributeValue("name", null) == "twitter:title")?.GetAttributeValue("content", null).TrimStart('@')
                     ?? throw new InvalidDataException("Username missing"),
                 metaTags.FirstOrDefault(x => x.GetAttributeValue("property", null) == "og:description")?.GetAttributeValue("content", null)
             );
@@ -77,7 +77,7 @@ namespace LinkBot.Services.Instagram
 
         private async Task<string> GetStoryPostIdAsync(string username, string storyId, CancellationToken ct)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"https://ddinstagram.com/stories/{username}/{storyId}");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"https://uuinstagram.com/stories/{username}/{storyId}");
             request.Headers.Add("User-Agent", "bot");
 
             using var response = await _client.SendAsync(request, ct);

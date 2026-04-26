@@ -26,15 +26,11 @@ await new HostBuilder()
     })
     .ConfigureServices(services =>
     {
-        services.AddOptions<EzInstagramOptions>().BindConfiguration("EzInstagram").ValidateOnStart();
-
         services.AddHttpClient<IMediaClient, MediaClient>();
         services.AddHttpClient<IBStageClient, BStageClient>();
         services.AddHttpClient<IThreadsClient, ThreadsClient>();
         services.AddHttpClient<ITwitterClient, TwitterClient>()
             .ConfigureHttpClient(x => x.DefaultRequestHeaders.UserAgent.ParseAdd("LinkBot/1.0"));
-        services.AddHttpClient<IInstagramClient, DdInstagramClient>()
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AllowAutoRedirect = false });
-        services.AddHttpClient<IInstagramClient, EzInstagramClient>();
+        services.AddHttpClient<IInstagramClient, VxInstagramClient>();
     })
     .RunConsoleAsync();
